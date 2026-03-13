@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getCoinDetail, getCoinChart } from "../api/coinGecko";
 import type { CoinDetail as CoinDetailType } from "../types/coin";
+import useFavorites from "../hooks/useFavorites";
 import {
   AreaChart,
   Area,
@@ -34,6 +35,7 @@ function CoinDetail() {
   const [loading, setLoading] = useState<boolean>(true);
   const [chartLoading, setChartLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const { toggleFavorite, isFavorite } = useFavorites();
 
   // 코인 상세 정보 (처음 한 번만)
   useEffect(() => {
@@ -129,6 +131,14 @@ function CoinDetail() {
             <h2 className="text-3xl font-bold">{coin.name}</h2>
             <p className="text-gray-400 uppercase">{coin.symbol}</p>
           </div>
+
+          {/* 즐겨찾기 버튼 */}
+          <button
+            onClick={() => toggleFavorite(coin.id)}
+            className="text-3xl hover:scale-110 transition-transform"
+          >
+            {isFavorite(coin.id) ? "⭐" : "☆"}
+          </button>
         </div>
 
         {/* 가격 */}

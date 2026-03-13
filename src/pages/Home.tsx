@@ -2,19 +2,18 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCoins } from "../api/coinGecko";
 import type { Coin } from "../types/coin";
+import useFavorites from "../hooks/useFavorites";
+import { Heart } from "lucide-react";
+import { Header } from "../compoents/Header";
 
 function Home() {
-  // 코인 데이터 저장할 공간
   const [coins, setCoins] = useState<Coin[]>([]);
-  // 로딩 상태
   const [loading, setLoading] = useState<boolean>(true);
-  // 에러 상태
   const [error, setError] = useState<string | null>(null);
-  // 검색 기능
   const [search, setSearch] = useState<string>("");
 
-  // 페이지 이동 담당
   const navigate = useNavigate();
+  const { toggleFavorite, isFavorite } = useFavorites();
 
   useEffect(() => {
     const fetchCoins = async () => {
@@ -55,16 +54,7 @@ function Home() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
-      <header className="border-b border-gray-800 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <h1 className="text-xl font-bold text-blue-400">CoinScope</h1>
-          <nav className="flex gap-4 text-sm text-gray-400">
-            <span className="cursor-pointer hover:text-white">Home</span>
-            <span className="cursor-pointer hover:text-white">Favorites</span>
-          </nav>
-        </div>
-      </header>
-
+      <Header />
       <main className="max-w-7xl mx-auto px-6 py-8">
         <h2 className="text-2xl font-semibold mb-2">암호화폐 시장</h2>
         <p className="text-gray-400 text-sm mb-4">
@@ -86,6 +76,7 @@ function Home() {
               onClick={() => navigate(`/coin/${coin.id}`)}
               className="flex items-center justify-between bg-gray-900 rounded-xl px-6 py-4 hover:bg-gray-800 cursor-pointer transition"
             >
+              {/* 왼쪽 - 코인 정보 */}
               <div className="flex items-center gap-4">
                 <img src={coin.image} alt={coin.name} className="w-8 h-8" />
                 <div>
@@ -96,20 +87,40 @@ function Home() {
                 </div>
               </div>
 
-              <div className="text-right">
-                <p className="font-semibold">
-                  ₩{coin.current_price.toLocaleString()}
-                </p>
-                <p
-                  className={`text-sm ${
-                    (coin.price_change_percentage_24h ?? 0) >= 0
-                      ? "text-green-400"
-                      : "text-red-400"
-                  }`}
+              {/* 오른쪽 - 가격 + 즐겨찾기 묶음 */}
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <p className="font-semibold">
+                    ₩{coin.current_price.toLocaleString()}
+                  </p>
+                  <p
+                    className={`text-sm ${
+                      (coin.price_change_percentage_24h ?? 0) >= 0
+                        ? "text-green-400"
+                        : "text-red-400"
+                    }`}
+                  >
+                    {(coin.price_change_percentage_24h ?? 0) >= 0 ? "+" : ""}
+                    {(coin.price_change_percentage_24h ?? 0).toFixed(2)}%
+                  </p>
+                </div>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(coin.id);
+                  }}
+                  className="p-1 hover:scale-110 transition-transform"
                 >
-                  {(coin.price_change_percentage_24h ?? 0) >= 0 ? "+" : ""}
-                  {(coin.price_change_percentage_24h ?? 0).toFixed(2)}%
-                </p>
+                  <Heart
+                    size={18}
+                    className={
+                      isFavorite(coin.id)
+                        ? "text-red-500 fill-red-500"
+                        : "text-gray-500"
+                    }
+                  />
+                </button>
               </div>
             </div>
           ))}
