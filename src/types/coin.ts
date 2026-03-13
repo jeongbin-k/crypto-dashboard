@@ -10,3 +10,34 @@ export interface Coin {
   market_cap: number; // 시가총액
   total_volume: number; // 거래량
 }
+
+export interface CoinDetail {
+  id: string;
+  name: string;
+  symbol: string;
+  image: {
+    large: string;
+  };
+  description: {
+    en: string;
+  };
+  market_data: {
+    current_price: {
+      krw: number;
+    };
+    price_change_percentage_24h: number | null;
+    price_change_percentage_7d: number | null;
+    market_cap: {
+      krw: number;
+    };
+    total_volume: {
+      krw: number;
+    };
+    high_24h: {
+      krw: number;
+    };
+    low_24h: {
+      krw: number;
+    };
+  };
+}

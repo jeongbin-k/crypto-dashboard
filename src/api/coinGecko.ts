@@ -1,5 +1,5 @@
 import axios from "axios";
-import type { Coin } from "../types/coin";
+import type { Coin, CoinDetail } from "../types/coin";
 
 const api = axios.create({
   baseURL: "https://api.coingecko.com/api/v3",
@@ -17,6 +17,21 @@ export const getCoins = async (): Promise<Coin[]> => {
       per_page: 50, // 50개
       page: 1,
       sparkline: false,
+    },
+  });
+  return data;
+};
+
+// 코인 상세 정보
+
+export const getCoinDetail = async (id: string): Promise<CoinDetail> => {
+  const { data } = await api.get(`/coins/${id}`, {
+    params: {
+      localization: false,
+      tickers: false,
+      market_data: true,
+      community_data: false,
+      developer_data: false,
     },
   });
   return data;
