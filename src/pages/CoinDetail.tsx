@@ -14,7 +14,7 @@ import {
 
 // 기간 버튼 옵션
 const PERIODS = [
-  { label: "1D", days: 1 },
+  { label: "1d", days: 1 },
   { label: "7D", days: 7 },
   { label: "1M", days: 30 },
   { label: "3M", days: 90 },
