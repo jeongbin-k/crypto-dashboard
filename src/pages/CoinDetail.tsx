@@ -1,15 +1,41 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getCoinDetail } from "../api/coinGecko";
+import { getCoinDetail, getCoinChart } from "../api/coinGecko";
 import type { CoinDetail as CoinDetailType } from "../types/coin";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+
+// 기간 버튼 옵션
+const PERIODS = [
+  { label: "1D", days: 1 },
+  { label: "7D", days: 7 },
+  { label: "1M", days: 30 },
+  { label: "3M", days: 90 },
+  { label: "1Y", days: 365 },
+];
+
+interface ChartData {
+  date: string;
+  price: number;
+}
 
 function CoinDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [coin, setCoin] = useState<CoinDetailType | null>(null);
+  const [chartData, setChartData] = useState<ChartData[]>([]);
+  const [selectedDays, setSelectedDays] = useState<number>(7);
   const [loading, setLoading] = useState<boolean>(true);
+  const [chartLoading, setChartLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
+  // 코인 상세 정보 (처음 한 번만)
   useEffect(() => {
     const fetchCoin = async () => {
       try {
@@ -24,6 +50,33 @@ function CoinDetail() {
     };
     fetchCoin();
   }, [id]);
+
+  // 차트 데이터 (기간 바뀔 때마다)
+  useEffect(() => {
+    const fetchChart = async () => {
+      setChartLoading(true);
+      try {
+        const raw = await getCoinChart(id!, selectedDays);
+
+        // [timestamp, price] → { date, price } 변환
+        const formatted = raw.map(([timestamp, price]) => ({
+          date: new Date(timestamp).toLocaleDateString("ko-KR", {
+            month: "short",
+            day: "numeric",
+            ...(selectedDays === 1 && { hour: "2-digit", minute: "2-digit" }),
+          }),
+          price: Math.round(price),
+        }));
+        setChartData(formatted);
+      } catch (err) {
+        console.log(err);
+        console.error("차트 데이터 오류");
+      } finally {
+        setChartLoading(false);
+      }
+    };
+    fetchChart();
+  }, [id, selectedDays]); // selectedDays 바뀔 때마다 재호출
 
   if (loading) {
     return (
@@ -51,7 +104,6 @@ function CoinDetail() {
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
-      {/* 헤더 */}
       <header className="border-b border-gray-800 px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <h1
@@ -97,6 +149,77 @@ function CoinDetail() {
               {change7d.toFixed(2)}%
             </span>
           </div>
+        </div>
+
+        {/* 차트 */}
+        <div className="bg-gray-900 rounded-2xl p-6 mb-6">
+          {/* 기간 선택 버튼 */}
+          <div className="flex gap-2 mb-6">
+            {PERIODS.map((period) => (
+              <button
+                key={period.days}
+                onClick={() => setSelectedDays(period.days)}
+                className={`px-3 py-1 rounded-lg text-sm transition ${
+                  selectedDays === period.days
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-800 text-gray-400 hover:text-white"
+                }`}
+              >
+                {period.label}
+              </button>
+            ))}
+          </div>
+
+          {/* 차트 */}
+          {chartLoading ? (
+            <div className="h-64 flex items-center justify-center">
+              <p className="text-gray-400 text-sm">차트 불러오는 중...</p>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={264}>
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis
+                  dataKey="date"
+                  tick={{ fill: "#6b7280", fontSize: 11 }}
+                  tickLine={false}
+                  axisLine={false}
+                  interval="preserveStartEnd"
+                />
+                <YAxis
+                  tick={{ fill: "#6b7280", fontSize: 11 }}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(v) => `₩${(v / 1000000).toFixed(0)}M`}
+                  width={70}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#1f2937",
+                    border: "none",
+                    borderRadius: "8px",
+                    color: "#fff",
+                  }}
+                  formatter={(value: unknown) => [
+                    `₩${Number(value).toLocaleString()}`,
+                    "가격",
+                  ]}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="price"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  fill="url(#colorPrice)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
         </div>
 
         {/* 시장 정보 */}

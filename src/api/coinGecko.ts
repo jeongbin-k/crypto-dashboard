@@ -22,8 +22,7 @@ export const getCoins = async (): Promise<Coin[]> => {
   return data;
 };
 
-// 코인 상세 정보
-
+// 코인 상세 정보 (CoinDetail.tsx)
 export const getCoinDetail = async (id: string): Promise<CoinDetail> => {
   const { data } = await api.get(`/coins/${id}`, {
     params: {
@@ -35,6 +34,20 @@ export const getCoinDetail = async (id: string): Promise<CoinDetail> => {
     },
   });
   return data;
+};
+
+// 코인 차트 (CoinDetail.tsx)
+export const getCoinChart = async (
+  id: string,
+  days: number,
+): Promise<[number, number][]> => {
+  const { data } = await api.get(`/coins/${id}/market_chart`, {
+    params: {
+      vs_currency: "krw",
+      days,
+    },
+  });
+  return data.prices;
 };
 
 export default api;
