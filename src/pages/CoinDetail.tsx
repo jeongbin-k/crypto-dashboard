@@ -51,7 +51,7 @@ function CoinDetail() {
       }
     };
     fetchCoin();
-  }, [id]);
+  }, [id, selectedDays]);
 
   // 차트 데이터 (기간 바뀔 때마다)
   useEffect(() => {
