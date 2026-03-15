@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getCoinDetail, getCoinChart } from "../api/coinGecko";
 import type { CoinDetail as CoinDetailType } from "../types/coin";
 import useFavorites from "../hooks/useFavorites";
+import { Heart } from "lucide-react";
 import {
   AreaChart,
   Area,
@@ -137,7 +138,14 @@ function CoinDetail() {
             onClick={() => toggleFavorite(coin.id)}
             className="text-3xl hover:scale-110 transition-transform"
           >
-            {isFavorite(coin.id) ? "⭐" : "☆"}
+            <Heart
+              size={18}
+              className={
+                isFavorite(coin.id)
+                  ? "text-red-500 fill-red-500"
+                  : "text-gray-500"
+              }
+            />
           </button>
         </div>
 
